@@ -80,6 +80,8 @@ func (nfa *NFA) accept(input string) bool {
 	return false
 }
 
+// DumpDOT outputs a DOT. DOT is a graph description language.
+// The start state forms square box and the accept states form double circle.
 func (nfa *NFA) DumpDOT() {
 	fmt.Printf("digraph G {\n")
 	fmt.Printf("    %d [shape = box];\n", nfa.StartState.ID)
