@@ -9,6 +9,7 @@ type NodeType int
 const (
 	ND_SYMBOL NodeType = iota // 'a', 't', 'D',..
 	ND_UNION                  // '|'
+	ND_CONCAT
 )
 
 type Parser struct {
@@ -29,6 +30,13 @@ func newNode(t NodeType, v rune) *Node {
 		Type:  t,
 		Value: v,
 	}
+}
+
+func newNodeWithLR(t NodeType, v rune, lhs, rhs *Node) *Node {
+	n := newNode(t, v)
+	n.Lhs = lhs
+	n.Rhs = rhs
+	return n
 }
 
 func NewParser(tokens []token.Token) Parser {
@@ -60,15 +68,22 @@ func (p *Parser) parseSymbol() *Node {
 	return node
 }
 
-func (p *Parser) parseUnion() *Node {
+func (p *Parser) parseConcate() *Node {
 	lhs := p.parseSymbol()
+	for p.curTokenTypeIs(token.TK_CONCAT) {
+		v := p.getCurToken().Value
+		p.nextToken()
+		lhs = newNodeWithLR(ND_CONCAT, v, lhs, p.parseSymbol())
+	}
+	return lhs
+}
+
+func (p *Parser) parseUnion() *Node {
+	lhs := p.parseConcate()
 	for p.curTokenTypeIs(token.TK_UNION) {
 		v := p.getCurToken().Value
 		p.nextToken()
-		node := newNode(ND_UNION, v)
-		node.Lhs = lhs
-		node.Rhs = p.parseSymbol()
-		lhs = node
+		lhs = newNodeWithLR(ND_UNION, v, lhs, p.parseConcate())
 	}
 	return lhs
 }

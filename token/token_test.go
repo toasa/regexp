@@ -8,6 +8,8 @@ func TestTokenize(t *testing.T) {
 	inputs := []string{
 		"a",
 		"a|b",
+		"ab",
+		"ab|c",
 	}
 
 	expecteds := [][]Token{
@@ -19,6 +21,20 @@ func TestTokenize(t *testing.T) {
 			Token{TK_CHAR, 'a'},
 			Token{TK_UNION, '|'},
 			Token{TK_CHAR, 'b'},
+			Token{TK_EOF, '\000'},
+		},
+		[]Token{
+			Token{TK_CHAR, 'a'},
+			Token{TK_CONCAT, '・'},
+			Token{TK_CHAR, 'b'},
+			Token{TK_EOF, '\000'},
+		},
+		[]Token{
+			Token{TK_CHAR, 'a'},
+			Token{TK_CONCAT, '・'},
+			Token{TK_CHAR, 'b'},
+			Token{TK_UNION, '|'},
+			Token{TK_CHAR, 'c'},
 			Token{TK_EOF, '\000'},
 		},
 	}

@@ -7,17 +7,17 @@ import (
 
 type State struct {
 	ID    int
-	Nexts map[rune][]State
+	Nexts map[rune][]*State
 }
 
 // NFA is non-deterministic finite automaton
 type NFA struct {
-	States       []State
-	StartState   State
-	AcceptStates []State
+	States       []*State
+	StartState   *State
+	AcceptStates []*State
 }
 
-func newNFA(states []State, start State, accepts []State) *NFA {
+func newNFA(states []*State, start *State, accepts []*State) *NFA {
 	return &NFA{
 		States:       states,
 		StartState:   start,
@@ -25,9 +25,9 @@ func newNFA(states []State, start State, accepts []State) *NFA {
 	}
 }
 
-func removeDuplicate(states []State) []State {
+func removeDuplicate(states []*State) []*State {
 	dup_map := make(map[int]bool)
-	newStates := make([]State, 0)
+	newStates := make([]*State, 0)
 
 	for _, state := range states {
 		_, ok := dup_map[state.ID]
@@ -40,7 +40,7 @@ func removeDuplicate(states []State) []State {
 	return newStates
 }
 
-func contain(state State, states []State) bool {
+func contain(state *State, states []*State) bool {
 	for _, s := range states {
 		if s.ID == state.ID {
 			return true
@@ -49,8 +49,8 @@ func contain(state State, states []State) bool {
 	return false
 }
 
-func adaptEpsilonTransition(states []State) []State {
-	nextStates := []State{}
+func adaptEpsilonTransition(states []*State) []*State {
+	nextStates := []*State{}
 	for _, state := range states {
 		if nexts, ok := state.Nexts['ε']; ok {
 			nextStates = append(nextStates, nexts...)
@@ -61,7 +61,7 @@ func adaptEpsilonTransition(states []State) []State {
 	return removeDuplicate(nextStates)
 }
 
-func containStateOfEpsilonTransitive(states []State) bool {
+func containStateOfEpsilonTransitive(states []*State) bool {
 	for _, state := range states {
 		if _, ok := state.Nexts['ε']; ok {
 			return true
@@ -72,13 +72,13 @@ func containStateOfEpsilonTransitive(states []State) bool {
 
 // check that nfa accepts the string or not.
 func (nfa *NFA) accept(str string) bool {
-	curStates := []State{nfa.StartState}
+	curStates := []*State{nfa.StartState}
 	for containStateOfEpsilonTransitive(curStates) {
 		curStates = adaptEpsilonTransition(curStates)
 	}
 
 	for _, c := range str {
-		nextStates := []State{}
+		nextStates := []*State{}
 		for _, state := range curStates {
 			next, ok := state.Nexts[c]
 			if ok {
@@ -128,12 +128,12 @@ func newGenerator() *Generator {
 	}
 }
 
-func (g *Generator) newState() State {
+func (g *Generator) newState() *State {
 	id := g.StateCount
 	g.StateCount++
-	return State{
+	return &State{
 		ID:    id,
-		Nexts: make(map[rune][]State),
+		Nexts: make(map[rune][]*State),
 	}
 }
 
@@ -145,20 +145,33 @@ func (g *Generator) genSymbolNFA(symbol rune) *NFA {
 	tmp = append(tmp, dst)
 	src.Nexts[symbol] = tmp
 
-	states := []State{src, dst}
-	accepts := []State{dst}
+	states := []*State{src, dst}
+	accepts := []*State{dst}
 
 	return newNFA(states, src, accepts)
 }
 
 func (g *Generator) genUnionNFA(lhs, rhs *NFA) *NFA {
 	start := g.newState()
-	start.Nexts['ε'] = []State{lhs.StartState, rhs.StartState}
+	start.Nexts['ε'] = []*State{lhs.StartState, rhs.StartState}
 
-	states := []State{start}
+	states := []*State{start}
 	states = append(states, lhs.States...)
 	states = append(states, rhs.States...)
 	accepts := append(lhs.AcceptStates, rhs.AcceptStates...)
+	return newNFA(states, start, accepts)
+}
+
+func (g *Generator) genConcateNFA(lhs, rhs *NFA) *NFA {
+	for _, state := range lhs.AcceptStates {
+		tmp := state.Nexts['ε']
+		tmp = append(tmp, rhs.StartState)
+		state.Nexts['ε'] = tmp
+	}
+
+	start := lhs.StartState
+	accepts := rhs.AcceptStates
+	states := append(lhs.States, rhs.States...)
 	return newNFA(states, start, accepts)
 }
 
@@ -170,6 +183,10 @@ func (g *Generator) gen(node *parser.Node) *NFA {
 		lhs := g.gen(node.Lhs)
 		rhs := g.gen(node.Rhs)
 		return g.genUnionNFA(lhs, rhs)
+	case parser.ND_CONCAT:
+		lhs := g.gen(node.Lhs)
+		rhs := g.gen(node.Rhs)
+		return g.genConcateNFA(lhs, rhs)
 	}
 	return nil
 }

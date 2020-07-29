@@ -16,9 +16,6 @@ func genNFA(regexp string) *NFA {
 type testUnit struct {
 	input    string
 	expected bool
-	}{
-		{"a", true},
-		{"b", false},
 }
 
 func testRegExp(t *testing.T, regexp string, tests []testUnit) {
@@ -62,6 +59,36 @@ func TestUnion(t *testing.T) {
 		{"bc", false},
 		{"ca", false},
 		{"abc", false},
+	}
+	testRegExp(t, regexp2, units2)
+}
+
+func TestConcate(t *testing.T) {
+	regexp := "ab"
+	units := []testUnit{
+		{"ab", true},
+		{"a", false},
+		{"b", false},
+	}
+	testRegExp(t, regexp, units)
+}
+
+func TestComprehensive(t *testing.T) {
+	regexp1 := "ab|c"
+	units1 := []testUnit{
+		{"ab", true},
+		{"c", true},
+		{"a", false},
+		{"ac", false},
+	}
+	testRegExp(t, regexp1, units1)
+
+	regexp2 := "a|bc"
+	units2 := []testUnit{
+		{"a", true},
+		{"bc", true},
+		{"b", false},
+		{"ab", false},
 	}
 	testRegExp(t, regexp2, units2)
 }
