@@ -152,6 +152,8 @@ func (g *Generator) genSymbolNFA(symbol rune) *NFA {
 }
 
 func (g *Generator) genUnionNFA(lhs, rhs *NFA) *NFA {
+	// Create new start state, and the new start state has
+	// ε-transitions to the old start state of lhs and rhs.
 	start := g.newState()
 	start.Nexts['ε'] = []*State{lhs.StartState, rhs.StartState}
 
@@ -163,6 +165,8 @@ func (g *Generator) genUnionNFA(lhs, rhs *NFA) *NFA {
 }
 
 func (g *Generator) genConcateNFA(lhs, rhs *NFA) *NFA {
+	// Let the accept states of lhs have ε-transitions to the
+	// start state of rhs.
 	for _, state := range lhs.AcceptStates {
 		tmp := state.Nexts['ε']
 		tmp = append(tmp, rhs.StartState)
