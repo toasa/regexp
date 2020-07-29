@@ -109,15 +109,15 @@ func (nfa *NFA) accept(str string) bool {
 // The start state forms square box and the accept states form double circle.
 func (nfa *NFA) DumpDOT() {
 	fmt.Printf("digraph G {\n")
-	fmt.Printf("    %d [shape = box];\n", nfa.StartState.ID)
+	fmt.Printf("    q%d [shape = box];\n", nfa.StartState.ID)
 	for _, s := range nfa.AcceptStates {
-		fmt.Printf("    %d [shape = doublecircle];\n", s.ID)
+		fmt.Printf("    q%d [shape = doublecircle];\n", s.ID)
 	}
 
 	for _, src := range nfa.States {
 		for symbol, dstStates := range src.Nexts {
 			for _, dst := range dstStates {
-				fmt.Printf("    %d -> %d [label=%c];\n", src.ID, dst.ID, symbol)
+				fmt.Printf("    q%d -> q%d [label=%c];\n", src.ID, dst.ID, symbol)
 			}
 		}
 	}
