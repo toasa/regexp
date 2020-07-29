@@ -73,6 +73,17 @@ func TestConcate(t *testing.T) {
 	testRegExp(t, regexp, units)
 }
 
+func TestStar(t *testing.T) {
+	regexp := "a*"
+	units := []testUnit{
+		{"", true},
+		{"a", true},
+		{"aaaaaa", true},
+		{"b", false},
+	}
+	testRegExp(t, regexp, units)
+}
+
 func TestComprehensive(t *testing.T) {
 	regexp1 := "ab|c"
 	units1 := []testUnit{
@@ -91,4 +102,26 @@ func TestComprehensive(t *testing.T) {
 		{"ab", false},
 	}
 	testRegExp(t, regexp2, units2)
+
+	regexp3 := "a*|b"
+	units3 := []testUnit{
+		{"", true},
+		{"a", true},
+		{"aaa", true},
+		{"b", true},
+		{"ab", false},
+		{"aaaab", false},
+		{"bb", false},
+	}
+	testRegExp(t, regexp3, units3)
+
+	regexp4 := "ab*"
+	units4 := []testUnit{
+		{"a", true},
+		{"ab", true},
+		{"abbbbbbb", true},
+		{"", false},
+		{"b", false},
+	}
+	testRegExp(t, regexp4, units4)
 }

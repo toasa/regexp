@@ -10,6 +10,7 @@ func TestTokenize(t *testing.T) {
 		"a|b",
 		"ab",
 		"ab|c",
+		"a*||*b",
 	}
 
 	expecteds := [][]Token{
@@ -35,6 +36,15 @@ func TestTokenize(t *testing.T) {
 			Token{TK_SYMBOL, 'b'},
 			Token{TK_UNION, '|'},
 			Token{TK_SYMBOL, 'c'},
+			Token{TK_EOF, '\000'},
+		},
+		[]Token{
+			Token{TK_SYMBOL, 'a'},
+			Token{TK_STAR, '*'},
+			Token{TK_UNION, '|'},
+			Token{TK_UNION, '|'},
+			Token{TK_STAR, '*'},
+			Token{TK_SYMBOL, 'b'},
 			Token{TK_EOF, '\000'},
 		},
 	}

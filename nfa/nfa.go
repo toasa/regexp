@@ -54,9 +54,8 @@ func adaptEpsilonTransition(states []*State) []*State {
 	for _, state := range states {
 		if nexts, ok := state.Nexts['ε']; ok {
 			nextStates = append(nextStates, nexts...)
-		} else {
-			nextStates = append(nextStates, state)
 		}
+		nextStates = append(nextStates, state)
 	}
 	return removeDuplicate(nextStates)
 }
@@ -70,32 +69,40 @@ func containStateOfEpsilonTransitive(states []*State) bool {
 	return false
 }
 
+func (nfa *NFA) isInAcceptState(states []*State) bool {
+	for _, state := range states {
+		if contain(state, nfa.AcceptStates) {
+			return true
+		}
+	}
+	return false
+}
+
 // check that nfa accepts the string or not.
 func (nfa *NFA) accept(str string) bool {
 	curStates := []*State{nfa.StartState}
-	for containStateOfEpsilonTransitive(curStates) {
-		curStates = adaptEpsilonTransition(curStates)
+	curStates = adaptEpsilonTransition(curStates)
+
+	// the case of empty string
+	if len(str) == 0 {
+		return nfa.isInAcceptState(curStates)
 	}
 
 	for _, c := range str {
 		nextStates := []*State{}
+		// adapt ε transition before each symbol is read.
+		curStates = adaptEpsilonTransition(curStates)
 		for _, state := range curStates {
 			next, ok := state.Nexts[c]
 			if ok {
 				nextStates = append(nextStates, next...)
 			}
 		}
-		nextStates = removeDuplicate(nextStates)
-		// adapt ε transition *after* each symbol is read.
-		curStates = adaptEpsilonTransition(nextStates)
+		curStates = removeDuplicate(nextStates)
+		// adapt ε transition after each symbol is read.
+		curStates = adaptEpsilonTransition(curStates)
 	}
-
-	for _, state := range curStates {
-		if contain(state, nfa.AcceptStates) {
-			return true
-		}
-	}
-	return false
+	return nfa.isInAcceptState(curStates)
 }
 
 // DumpDOT outputs a DOT. DOT is a graph description language.
@@ -179,6 +186,25 @@ func (g *Generator) genConcateNFA(lhs, rhs *NFA) *NFA {
 	return newNFA(states, start, accepts)
 }
 
+func (g *Generator) genStarNFA(old *NFA) *NFA {
+	start := g.newState()
+	start.Nexts['ε'] = []*State{old.StartState}
+
+	// Let the accept states of old have ε-transitions to the
+	// old's start state.
+	for _, state := range old.AcceptStates {
+		tmp := state.Nexts['ε']
+		tmp = append(tmp, old.StartState)
+		state.Nexts['ε'] = tmp
+	}
+
+	accepts := old.AcceptStates
+	// new start state is also accept state
+	accepts = append(accepts, start)
+	states := append(old.States, start)
+	return newNFA(states, start, accepts)
+}
+
 func (g *Generator) gen(node *parser.Node) *NFA {
 	switch node.Type {
 	case parser.ND_SYMBOL:
@@ -191,6 +217,9 @@ func (g *Generator) gen(node *parser.Node) *NFA {
 		lhs := g.gen(node.Lhs)
 		rhs := g.gen(node.Rhs)
 		return g.genConcateNFA(lhs, rhs)
+	case parser.ND_STAR:
+		old := g.gen(node.Lhs)
+		return g.genStarNFA(old)
 	}
 	return nil
 }

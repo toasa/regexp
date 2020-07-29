@@ -9,7 +9,8 @@ type NodeType int
 const (
 	ND_SYMBOL NodeType = iota // 'a', 't', 'D',..
 	ND_UNION                  // '|'
-	ND_CONCAT
+	ND_CONCAT                 // '・'
+	ND_STAR                   // '*'
 )
 
 type Parser struct {
@@ -68,12 +69,23 @@ func (p *Parser) parseSymbol() *Node {
 	return node
 }
 
+func (p *Parser) parseStar() *Node {
+	n := p.parseSymbol()
+	// TODO? need to handle multiple stars?
+	if p.curTokenTypeIs(token.TK_STAR) {
+		v := p.getCurToken().Value
+		p.nextToken()
+		n = newNodeWithLR(ND_STAR, v, n, nil)
+	}
+	return n
+}
+
 func (p *Parser) parseConcate() *Node {
-	lhs := p.parseSymbol()
+	lhs := p.parseStar()
 	for p.curTokenTypeIs(token.TK_CONCAT) {
 		v := p.getCurToken().Value
 		p.nextToken()
-		lhs = newNodeWithLR(ND_CONCAT, v, lhs, p.parseSymbol())
+		lhs = newNodeWithLR(ND_CONCAT, v, lhs, p.parseStar())
 	}
 	return lhs
 }
