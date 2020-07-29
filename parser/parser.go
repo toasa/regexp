@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"regexp/token"
 )
 
@@ -58,6 +59,37 @@ func (p Parser) getCurToken() token.Token {
 
 func (p Parser) curTokenTypeIs(tt token.TokenType) bool {
 	return (p.getCurToken().Type) == tt
+}
+
+func nodeToStr(n *Node) string {
+	switch n.Type {
+	case ND_UNION:
+		return "Union"
+	case ND_CONCAT:
+		return "Concat"
+	case ND_STAR:
+		return "Star"
+	default:
+		return string(n.Value)
+	}
+}
+
+func dumpDotForEachNode(n *Node) {
+	if n.Lhs != nil {
+		fmt.Printf("    %s -> %s\n", nodeToStr(n), nodeToStr(n.Lhs))
+		dumpDotForEachNode(n.Lhs)
+	}
+	if n.Rhs != nil {
+		fmt.Printf("    %s -> %s\n", nodeToStr(n), nodeToStr(n.Rhs))
+		dumpDotForEachNode(n.Rhs)
+	}
+}
+
+// for debug
+func DumpDOT(n *Node) {
+	fmt.Printf("digraph AST {\n")
+	dumpDotForEachNode(n)
+	fmt.Printf("}\n")
 }
 
 func (p *Parser) parseSymbol() *Node {
