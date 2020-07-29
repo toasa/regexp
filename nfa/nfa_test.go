@@ -84,6 +84,18 @@ func TestStar(t *testing.T) {
 	testRegExp(t, regexp, units)
 }
 
+func TestParent(t *testing.T) {
+	regexp := "(ab)*"
+	units := []testUnit{
+		{"", true},
+		{"ab", true},
+		{"abab", true},
+		{"aab", false},
+		{"abb", false},
+	}
+	testRegExp(t, regexp, units)
+}
+
 func TestComprehensive(t *testing.T) {
 	regexp1 := "ab|c"
 	units1 := []testUnit{
@@ -124,4 +136,33 @@ func TestComprehensive(t *testing.T) {
 		{"b", false},
 	}
 	testRegExp(t, regexp4, units4)
+
+	regexp5 := "a|(bc)*"
+	units5 := []testUnit{
+		{"", true},
+		{"a", true},
+		{"bc", true},
+		{"bcbcbc", true},
+		{"ab", false},
+		{"bca", false},
+		{"ac", false},
+	}
+	testRegExp(t, regexp5, units5)
+
+	regexp6 := "(a|bc)*"
+	units6 := []testUnit{
+		{"", true},
+		{"a", true},
+		{"aaa", true},
+		{"bc", true},
+		{"bcbcbc", true},
+		{"bca", true},
+		{"abc", true},
+		{"abcbca", true},
+		{"bcaabc", true},
+		{"bac", false},
+		{"aab", false},
+		{"bcbcabcc", false},
+	}
+	testRegExp(t, regexp6, units6)
 }

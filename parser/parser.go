@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"os"
 	"regexp/token"
 )
 
@@ -61,6 +62,14 @@ func (p Parser) curTokenTypeIs(tt token.TokenType) bool {
 	return (p.getCurToken().Type) == tt
 }
 
+func (p *Parser) expect(tt token.TokenType) {
+	if !p.curTokenTypeIs(tt) {
+		fmt.Printf("expected %d token", tt)
+		os.Exit(1)
+	}
+	p.nextToken()
+}
+
 func nodeToStr(n *Node) string {
 	switch n.Type {
 	case ND_UNION:
@@ -97,12 +106,17 @@ func (p *Parser) parseSymbol() *Node {
 	if p.curTokenTypeIs(token.TK_SYMBOL) {
 		node = newNode(ND_SYMBOL, p.getCurToken().Value)
 		p.nextToken()
+	} else if p.curTokenTypeIs(token.TK_LPARENT) {
+		p.nextToken()
+		node = p.parseUnion()
+		p.expect(token.TK_RPARENT)
 	}
 	return node
 }
 
 func (p *Parser) parseStar() *Node {
 	n := p.parseSymbol()
+
 	// TODO? need to handle multiple stars?
 	if p.curTokenTypeIs(token.TK_STAR) {
 		v := p.getCurToken().Value

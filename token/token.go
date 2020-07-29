@@ -8,11 +8,13 @@ import (
 type TokenType int
 
 const (
-	TK_SYMBOL TokenType = iota // 'a', 't', 'D',..
-	TK_UNION                   // '|'
-	TK_CONCAT                  // '・' (・ is usually omitted in regular expression)
-	TK_STAR                    // '*'
-	TK_EOF                     // EOF
+	TK_SYMBOL  TokenType = iota // 'a', 't', 'D',..
+	TK_UNION                    // '|'
+	TK_CONCAT                   // '・' (・ is usually omitted in regular expression)
+	TK_STAR                     // '*'
+	TK_LPARENT                  // '('
+	TK_RPARENT                  // ')'
+	TK_EOF                      // EOF
 )
 
 type Token struct {
@@ -53,6 +55,10 @@ func Tokenize(regexp string) []Token {
 			t = newToken(TK_UNION, c)
 		} else if c == '*' {
 			t = newToken(TK_STAR, c)
+		} else if c == '(' {
+			t = newToken(TK_LPARENT, c)
+		} else if c == ')' {
+			t = newToken(TK_RPARENT, c)
 		} else {
 			fmt.Printf("unexpected input: %c", c)
 			os.Exit(1)
