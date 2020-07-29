@@ -62,12 +62,13 @@ func (p *Parser) parseSymbol() *Node {
 
 func (p *Parser) parseUnion() *Node {
 	lhs := p.parseSymbol()
-	if p.curTokenTypeIs(token.TK_UNION) {
+	for p.curTokenTypeIs(token.TK_UNION) {
+		v := p.getCurToken().Value
 		p.nextToken()
-		node := newNode(ND_UNION, p.getCurToken().Value)
+		node := newNode(ND_UNION, v)
 		node.Lhs = lhs
 		node.Rhs = p.parseSymbol()
-		return node
+		lhs = node
 	}
 	return lhs
 }

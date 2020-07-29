@@ -13,42 +13,55 @@ func genNFA(regexp string) *NFA {
 	return CreateNFA(ast)
 }
 
-func TestSymbol(t *testing.T) {
-	regexp := "a"
-	nfa := genNFA(regexp)
-
-	testData := []struct {
-		input    string
-		expected bool
+type testUnit struct {
+	input    string
+	expected bool
 	}{
 		{"a", true},
 		{"b", false},
-	}
+}
 
-	for _, data := range testData {
-		if nfa.accept(data.input) != data.expected {
-			t.Errorf("regexp is %s but NFA accepts %s\n", regexp, data.input)
+func testRegExp(t *testing.T, regexp string, tests []testUnit) {
+	nfa := genNFA(regexp)
+	for _, test := range tests {
+		if nfa.accept(test.input) != test.expected {
+			if test.expected {
+				t.Errorf("regexp is %s but NFA doesn't accept %s.\n", regexp, test.input)
+			} else {
+				t.Errorf("regexp is %s but NFA accepts %s.\n", regexp, test.input)
+			}
 		}
 	}
 }
 
-func TestUnion(t *testing.T) {
-	regexp := "a|b"
-	nfa := genNFA(regexp)
+func TestSymbol(t *testing.T) {
+	regexp1 := "a"
+	units1 := []testUnit{
+		{"a", true},
+		{"b", false},
+	}
+	testRegExp(t, regexp1, units1)
+}
 
-	testData := []struct {
-		input    string
-		expected bool
-	}{
+func TestUnion(t *testing.T) {
+	regexp1 := "a|b"
+	units1 := []testUnit{
 		{"a", true},
 		{"b", true},
 		{"c", false},
 		{"ab", false},
 	}
+	testRegExp(t, regexp1, units1)
 
-	for _, data := range testData {
-		if nfa.accept(data.input) != data.expected {
-			t.Errorf("regexp is %s but NFA accepts %s\n", regexp, data.input)
-		}
+	regexp2 := "a|b|c"
+	units2 := []testUnit{
+		{"a", true},
+		{"b", true},
+		{"c", true},
+		{"ab", false},
+		{"bc", false},
+		{"ca", false},
+		{"abc", false},
 	}
+	testRegExp(t, regexp2, units2)
 }

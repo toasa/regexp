@@ -61,10 +61,21 @@ func adaptEpsilonTransition(states []State) []State {
 	return removeDuplicate(nextStates)
 }
 
+func containStateOfEpsilonTransitive(states []State) bool {
+	for _, state := range states {
+		if _, ok := state.Nexts['ε']; ok {
+			return true
+		}
+	}
+	return false
+}
+
 // check that nfa accepts the string or not.
 func (nfa *NFA) accept(str string) bool {
-	// TODO?: need to adapt ε transition multiple?
-	curStates := adaptEpsilonTransition([]State{nfa.StartState})
+	curStates := []State{nfa.StartState}
+	for containStateOfEpsilonTransitive(curStates) {
+		curStates = adaptEpsilonTransition(curStates)
+	}
 
 	for _, c := range str {
 		nextStates := []State{}
