@@ -42,6 +42,37 @@ func newNodeWithLR(t NodeType, v rune, lhs, rhs *Node) *Node {
 	return n
 }
 
+func nodeToStr(n *Node) string {
+	switch n.Type {
+	case ND_UNION:
+		return "Union"
+	case ND_CONCAT:
+		return "Concat"
+	case ND_STAR:
+		return "Star"
+	default:
+		return string(n.Value)
+	}
+}
+
+func dumpDotForEachNode(n *Node) {
+	if n.Lhs != nil {
+		fmt.Printf("    %s -> %s\n", nodeToStr(n), nodeToStr(n.Lhs))
+		dumpDotForEachNode(n.Lhs)
+	}
+	if n.Rhs != nil {
+		fmt.Printf("    %s -> %s\n", nodeToStr(n), nodeToStr(n.Rhs))
+		dumpDotForEachNode(n.Rhs)
+	}
+}
+
+// for debug
+func (n *Node) DumpDOT() {
+	fmt.Printf("digraph AST {\n")
+	dumpDotForEachNode(n)
+	fmt.Printf("}\n")
+}
+
 func NewParser(tokens []token.Token) Parser {
 	return Parser{
 		tokens:      tokens,
@@ -68,37 +99,6 @@ func (p *Parser) expect(tt token.TokenType) {
 		os.Exit(1)
 	}
 	p.nextToken()
-}
-
-func nodeToStr(n *Node) string {
-	switch n.Type {
-	case ND_UNION:
-		return "Union"
-	case ND_CONCAT:
-		return "Concat"
-	case ND_STAR:
-		return "Star"
-	default:
-		return string(n.Value)
-	}
-}
-
-func dumpDotForEachNode(n *Node) {
-	if n.Lhs != nil {
-		fmt.Printf("    %s -> %s\n", nodeToStr(n), nodeToStr(n.Lhs))
-		dumpDotForEachNode(n.Lhs)
-	}
-	if n.Rhs != nil {
-		fmt.Printf("    %s -> %s\n", nodeToStr(n), nodeToStr(n.Rhs))
-		dumpDotForEachNode(n.Rhs)
-	}
-}
-
-// for debug
-func DumpDOT(n *Node) {
-	fmt.Printf("digraph AST {\n")
-	dumpDotForEachNode(n)
-	fmt.Printf("}\n")
 }
 
 // Symbol = symbol | '(' Union ')'
