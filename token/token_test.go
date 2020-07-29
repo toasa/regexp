@@ -7,11 +7,18 @@ import (
 func TestTokenize(t *testing.T) {
 	inputs := []string{
 		"a",
+		"a|b",
 	}
 
 	expecteds := [][]Token{
 		[]Token{
 			Token{TK_CHAR, 'a'},
+			Token{TK_EOF, '\000'},
+		},
+		[]Token{
+			Token{TK_CHAR, 'a'},
+			Token{TK_UNION, '|'},
+			Token{TK_CHAR, 'b'},
 			Token{TK_EOF, '\000'},
 		},
 	}

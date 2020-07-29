@@ -8,6 +8,7 @@ type NodeType int
 
 const (
 	ND_SYMBOL NodeType = iota // 'a', 't', 'D',..
+	ND_UNION                  // '|'
 )
 
 type Parser struct {
@@ -20,10 +21,10 @@ type Node struct {
 	Type  NodeType
 	Lhs   *Node
 	Rhs   *Node
-	Value byte
+	Value rune
 }
 
-func newNode(t NodeType, v byte) *Node {
+func newNode(t NodeType, v rune) *Node {
 	return &Node{
 		Type:  t,
 		Value: v,
@@ -59,7 +60,19 @@ func (p *Parser) parseSymbol() *Node {
 	return node
 }
 
+func (p *Parser) parseUnion() *Node {
+	lhs := p.parseSymbol()
+	if p.curTokenTypeIs(token.TK_UNION) {
+		p.nextToken()
+		node := newNode(ND_UNION, p.getCurToken().Value)
+		node.Lhs = lhs
+		node.Rhs = p.parseSymbol()
+		return node
+	}
+	return lhs
+}
+
 func Parse(tokens []token.Token) *Node {
 	p := NewParser(tokens)
-	return p.parseSymbol()
+	return p.parseUnion()
 }

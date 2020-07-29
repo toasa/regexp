@@ -5,18 +5,9 @@ import (
 	"regexp/parser"
 )
 
-const ε byte = '\000'
-
 type State struct {
 	ID    int
-	Nexts map[byte][]State
-}
-
-func newState(id int) State {
-	return State{
-		ID:    id,
-		Nexts: make(map[byte][]State),
-	}
+	Nexts map[rune][]State
 }
 
 // NFA is non-deterministic finite automaton
@@ -26,8 +17,8 @@ type NFA struct {
 	AcceptStates []State
 }
 
-func newNFA(states []State, start State, accepts []State) NFA {
-	return NFA{
+func newNFA(states []State, start State, accepts []State) *NFA {
+	return &NFA{
 		States:       states,
 		StartState:   start,
 		AcceptStates: accepts,
@@ -58,18 +49,34 @@ func contain(state State, states []State) bool {
 	return false
 }
 
-func (nfa *NFA) accept(input string) bool {
-	curStates := []State{nfa.StartState}
+func adaptEpsilonTransition(states []State) []State {
 	nextStates := []State{}
-	for i := 0; i < len(input); i++ {
-		c := input[i]
+	for _, state := range states {
+		if nexts, ok := state.Nexts['ε']; ok {
+			nextStates = append(nextStates, nexts...)
+		} else {
+			nextStates = append(nextStates, state)
+		}
+	}
+	return removeDuplicate(nextStates)
+}
+
+// check that nfa accepts the string or not.
+func (nfa *NFA) accept(str string) bool {
+	// TODO?: need to adapt ε transition multiple?
+	curStates := adaptEpsilonTransition([]State{nfa.StartState})
+
+	for _, c := range str {
+		nextStates := []State{}
 		for _, state := range curStates {
 			next, ok := state.Nexts[c]
 			if ok {
 				nextStates = append(nextStates, next...)
 			}
 		}
-		curStates = removeDuplicate(nextStates)
+		nextStates = removeDuplicate(nextStates)
+		// adapt ε transition *after* each symbol is read.
+		curStates = adaptEpsilonTransition(nextStates)
 	}
 
 	for _, state := range curStates {
@@ -110,18 +117,18 @@ func newGenerator() *Generator {
 	}
 }
 
-func (g *Generator) newStateID() int {
+func (g *Generator) newState() State {
 	id := g.StateCount
 	g.StateCount++
-	return id
+	return State{
+		ID:    id,
+		Nexts: make(map[rune][]State),
+	}
 }
 
-func (g *Generator) genSymbolNFA(symbol byte) NFA {
-	srcID := g.newStateID()
-	dstID := g.newStateID()
-
-	src := newState(srcID)
-	dst := newState(dstID)
+func (g *Generator) genSymbolNFA(symbol rune) *NFA {
+	src := g.newState()
+	dst := g.newState()
 
 	tmp := src.Nexts[symbol]
 	tmp = append(tmp, dst)
@@ -129,15 +136,34 @@ func (g *Generator) genSymbolNFA(symbol byte) NFA {
 
 	states := []State{src, dst}
 	accepts := []State{dst}
+
 	return newNFA(states, src, accepts)
 }
 
-func CreateNFA(node *parser.Node) NFA {
-	generator := newGenerator()
+func (g *Generator) genUnionNFA(lhs, rhs *NFA) *NFA {
+	start := g.newState()
+	start.Nexts['ε'] = []State{lhs.StartState, rhs.StartState}
 
-	var nfa NFA
-	if node.Type == parser.ND_SYMBOL {
-		nfa = generator.genSymbolNFA(node.Value)
+	states := []State{start}
+	states = append(states, lhs.States...)
+	states = append(states, rhs.States...)
+	accepts := append(lhs.AcceptStates, rhs.AcceptStates...)
+	return newNFA(states, start, accepts)
+}
+
+func (g *Generator) gen(node *parser.Node) *NFA {
+	switch node.Type {
+	case parser.ND_SYMBOL:
+		return g.genSymbolNFA(node.Value)
+	case parser.ND_UNION:
+		lhs := g.gen(node.Lhs)
+		rhs := g.gen(node.Rhs)
+		return g.genUnionNFA(lhs, rhs)
 	}
-	return nfa
+	return nil
+}
+
+func CreateNFA(node *parser.Node) *NFA {
+	generator := newGenerator()
+	return generator.gen(node)
 }

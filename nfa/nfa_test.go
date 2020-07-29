@@ -7,7 +7,7 @@ import (
 	"regexp/token"
 )
 
-func genNFA(regexp string) NFA {
+func genNFA(regexp string) *NFA {
 	tokens := token.Tokenize(regexp)
 	ast := parser.Parse(tokens)
 	return CreateNFA(ast)
@@ -23,6 +23,27 @@ func TestSymbol(t *testing.T) {
 	}{
 		{"a", true},
 		{"b", false},
+	}
+
+	for _, data := range testData {
+		if nfa.accept(data.input) != data.expected {
+			t.Errorf("regexp is %s but NFA accepts %s\n", regexp, data.input)
+		}
+	}
+}
+
+func TestUnion(t *testing.T) {
+	regexp := "a|b"
+	nfa := genNFA(regexp)
+
+	testData := []struct {
+		input    string
+		expected bool
+	}{
+		{"a", true},
+		{"b", true},
+		{"c", false},
+		{"ab", false},
 	}
 
 	for _, data := range testData {
