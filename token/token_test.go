@@ -14,27 +14,27 @@ func TestTokenize(t *testing.T) {
 
 	expecteds := [][]Token{
 		[]Token{
-			Token{TK_CHAR, 'a'},
+			Token{TK_SYMBOL, 'a'},
 			Token{TK_EOF, '\000'},
 		},
 		[]Token{
-			Token{TK_CHAR, 'a'},
+			Token{TK_SYMBOL, 'a'},
 			Token{TK_UNION, '|'},
-			Token{TK_CHAR, 'b'},
+			Token{TK_SYMBOL, 'b'},
 			Token{TK_EOF, '\000'},
 		},
 		[]Token{
-			Token{TK_CHAR, 'a'},
+			Token{TK_SYMBOL, 'a'},
 			Token{TK_CONCAT, '・'},
-			Token{TK_CHAR, 'b'},
+			Token{TK_SYMBOL, 'b'},
 			Token{TK_EOF, '\000'},
 		},
 		[]Token{
-			Token{TK_CHAR, 'a'},
+			Token{TK_SYMBOL, 'a'},
 			Token{TK_CONCAT, '・'},
-			Token{TK_CHAR, 'b'},
+			Token{TK_SYMBOL, 'b'},
 			Token{TK_UNION, '|'},
-			Token{TK_CHAR, 'c'},
+			Token{TK_SYMBOL, 'c'},
 			Token{TK_EOF, '\000'},
 		},
 	}

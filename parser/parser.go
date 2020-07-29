@@ -61,7 +61,7 @@ func (p Parser) curTokenTypeIs(tt token.TokenType) bool {
 
 func (p *Parser) parseSymbol() *Node {
 	var node *Node
-	if p.curTokenTypeIs(token.TK_CHAR) {
+	if p.curTokenTypeIs(token.TK_SYMBOL) {
 		node = newNode(ND_SYMBOL, p.getCurToken().Value)
 		p.nextToken()
 	}

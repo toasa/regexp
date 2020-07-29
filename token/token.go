@@ -8,7 +8,7 @@ import (
 type TokenType int
 
 const (
-	TK_CHAR   TokenType = iota // 'a', 't', 'D',..
+	TK_SYMBOL TokenType = iota // 'a', 't', 'D',..
 	TK_UNION                   // '|'
 	TK_CONCAT                  // '・' (・ is usually omitted in regular expression)
 	TK_EOF                     // EOF
@@ -30,12 +30,12 @@ func isChar(c rune) bool {
 	return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')
 }
 
-func lastTokenIsChar(tokens []Token) bool {
+func lastTokenIsSymbol(tokens []Token) bool {
 	if len(tokens) == 0 {
 		return false
 	}
 
-	return tokens[len(tokens)-1].Type == TK_CHAR
+	return tokens[len(tokens)-1].Type == TK_SYMBOL
 }
 
 func Tokenize(regexp string) []Token {
@@ -43,11 +43,11 @@ func Tokenize(regexp string) []Token {
 	var t Token
 	for _, c := range regexp {
 		if isChar(c) {
-			if lastTokenIsChar(tokens) {
+			if lastTokenIsSymbol(tokens) {
 				t = newToken(TK_CONCAT, '・')
 				tokens = append(tokens, t)
 			}
-			t = newToken(TK_CHAR, c)
+			t = newToken(TK_SYMBOL, c)
 		} else if c == '|' {
 			t = newToken(TK_UNION, c)
 		} else {
