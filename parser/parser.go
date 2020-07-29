@@ -101,6 +101,7 @@ func DumpDOT(n *Node) {
 	fmt.Printf("}\n")
 }
 
+// Symbol = symbol | '(' Union ')'
 func (p *Parser) parseSymbol() *Node {
 	var node *Node
 	if p.curTokenTypeIs(token.TK_SYMBOL) {
@@ -114,6 +115,7 @@ func (p *Parser) parseSymbol() *Node {
 	return node
 }
 
+// Star = Symbol ('*')?
 func (p *Parser) parseStar() *Node {
 	n := p.parseSymbol()
 
@@ -126,6 +128,7 @@ func (p *Parser) parseStar() *Node {
 	return n
 }
 
+// Concate = Star ('concat' Star)*
 func (p *Parser) parseConcate() *Node {
 	lhs := p.parseStar()
 	for p.curTokenTypeIs(token.TK_CONCAT) {
@@ -136,6 +139,7 @@ func (p *Parser) parseConcate() *Node {
 	return lhs
 }
 
+// Union = Concate ('|' Concate)*
 func (p *Parser) parseUnion() *Node {
 	lhs := p.parseConcate()
 	for p.curTokenTypeIs(token.TK_UNION) {
