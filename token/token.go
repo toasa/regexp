@@ -33,12 +33,12 @@ func isChar(c rune) bool {
 	return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z')
 }
 
-func lastTokenIsSymbol(tokens []Token) bool {
+func lastTokenIsSymbol(tokens []Token, tt TokenType) bool {
 	if len(tokens) == 0 {
 		return false
 	}
 
-	return tokens[len(tokens)-1].Type == TK_SYMBOL
+	return tokens[len(tokens)-1].Type == tt
 }
 
 func Tokenize(regexp string) []Token {
@@ -46,7 +46,7 @@ func Tokenize(regexp string) []Token {
 	var t Token
 	for _, c := range regexp {
 		if isChar(c) {
-			if lastTokenIsSymbol(tokens) {
+			if lastTokenIsSymbol(tokens, TK_SYMBOL) || lastTokenIsSymbol(tokens, TK_STAR) || lastTokenIsSymbol(tokens, TK_RPARENT) {
 				t = newToken(TK_CONCAT, '・')
 				tokens = append(tokens, t)
 			}
