@@ -21,7 +21,7 @@ type testUnit struct {
 func testRegExp(t *testing.T, regexp string, tests []testUnit) {
 	nfa := genNFA(regexp)
 	for _, test := range tests {
-		if nfa.accept(test.input) != test.expected {
+		if nfa.Accept(test.input) != test.expected {
 			if test.expected {
 				t.Errorf("regexp is %s but NFA doesn't accept %s.\n", regexp, test.input)
 			} else {

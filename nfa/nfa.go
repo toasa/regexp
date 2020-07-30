@@ -79,7 +79,7 @@ func (nfa *NFA) isInAcceptState(states []*State) bool {
 }
 
 // check that nfa accepts the string or not.
-func (nfa *NFA) accept(str string) bool {
+func (nfa *NFA) Accept(str string) bool {
 	curStates := []*State{nfa.StartState}
 	curStates = adaptEpsilonTransition(curStates)
 
