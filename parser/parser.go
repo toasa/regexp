@@ -21,17 +21,23 @@ type Parser struct {
 	nextStateID int
 }
 
+var nodeIDCount = 0
+
 type Node struct {
 	Type  NodeType
 	Lhs   *Node
 	Rhs   *Node
 	Value rune
+	id    int
 }
 
 func newNode(t NodeType, v rune) *Node {
+	id := nodeIDCount
+	nodeIDCount++
 	return &Node{
 		Type:  t,
 		Value: v,
+		id:    id,
 	}
 }
 
@@ -45,13 +51,13 @@ func newNodeWithLR(t NodeType, v rune, lhs, rhs *Node) *Node {
 func nodeToStr(n *Node) string {
 	switch n.Type {
 	case ND_UNION:
-		return "Union"
+		return fmt.Sprintf("Union_%d", n.id)
 	case ND_CONCAT:
-		return "Concat"
+		return fmt.Sprintf("Concat_%d", n.id)
 	case ND_STAR:
-		return "Star"
+		return fmt.Sprintf("Star_%d", n.id)
 	default:
-		return string(n.Value)
+		return fmt.Sprintf("%s_%d", string(n.Value), n.id)
 	}
 }
 

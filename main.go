@@ -7,9 +7,10 @@ import (
 )
 
 func main() {
-	regexp := "(a|b)aba"
+	regexp := "(a|b)*aba"
 	tokens := token.Tokenize(regexp)
 	ast := parser.Parse(tokens)
+	ast.DumpDOT()
 	nfa := nfa.CreateNFA(ast)
 	nfa.DumpDOT()
 }
