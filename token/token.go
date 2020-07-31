@@ -41,12 +41,16 @@ func lastTokenIsSymbol(tokens []Token, tt TokenType) bool {
 	return tokens[len(tokens)-1].Type == tt
 }
 
+func isNeedToInsertConcatOperator(tokens []Token) bool {
+    return lastTokenIsSymbol(tokens, TK_SYMBOL) || lastTokenIsSymbol(tokens, TK_STAR) || lastTokenIsSymbol(tokens, TK_RPARENT)
+}
+
 func Tokenize(regexp string) []Token {
 	tokens := []Token{}
 	var t Token
 	for _, c := range regexp {
 		if isChar(c) {
-			if lastTokenIsSymbol(tokens, TK_SYMBOL) || lastTokenIsSymbol(tokens, TK_STAR) || lastTokenIsSymbol(tokens, TK_RPARENT) {
+			if isNeedToInsertConcatOperator(tokens) {
 				t = newToken(TK_CONCAT, '・')
 				tokens = append(tokens, t)
 			}
@@ -56,6 +60,10 @@ func Tokenize(regexp string) []Token {
 		} else if c == '*' {
 			t = newToken(TK_STAR, c)
 		} else if c == '(' {
+			if isNeedToInsertConcatOperator(tokens) {
+				t = newToken(TK_CONCAT, '・')
+				tokens = append(tokens, t)
+			}
 			t = newToken(TK_LPARENT, c)
 		} else if c == ')' {
 			t = newToken(TK_RPARENT, c)
