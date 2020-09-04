@@ -21,7 +21,7 @@ $ go run main.go -regexp "(a|bc)*" -input "aabcabcbca"
 
 `(a|bc)*`
 
-![state diagram](state_diagram.png)
+![state diagram](doc/image/state_diagram.png)
 
 # Requirement
 
